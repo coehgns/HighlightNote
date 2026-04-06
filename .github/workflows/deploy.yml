@@ -1,0 +1,22 @@
+name: Deploy To EC2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd ${{ secrets.EC2_PROJECT_PATH }}
+            git pull
+            chmod +x infra/ec2/deploy.sh
+            ./infra/ec2/deploy.sh

@@ -1,0 +1,51 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: highlightnote-mysql
+    environment:
+      MYSQL_DATABASE: highlightnote
+      MYSQL_USER: highlightnote
+      MYSQL_PASSWORD: highlightnote
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uhighlightnote", "-phighlightnote"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: highlightnote-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      HIGHLIGHTNOTE_DB_URL: jdbc:mysql://mysql:3306/highlightnote?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+      HIGHLIGHTNOTE_DB_USERNAME: highlightnote
+      HIGHLIGHTNOTE_DB_PASSWORD: highlightnote
+      HIGHLIGHTNOTE_UPLOAD_DIR: /app/data/uploads
+      HIGHLIGHTNOTE_EXPORT_DIR: /app/data/exports
+    ports:
+      - "8080:8080"
+    volumes:
+      - backend-data:/app/data
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: highlightnote-frontend
+    depends_on:
+      - backend
+    ports:
+      - "4173:80"
+
+volumes:
+  mysql-data:
+  backend-data:

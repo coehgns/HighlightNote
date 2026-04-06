@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #efe3c7;
+  --paper-strong: #e5d5b4;
+  --card: rgba(255, 252, 244, 0.92);
+  --panel: rgba(142, 106, 50, 0.08);
+  --line: rgba(82, 58, 27, 0.16);
+  --line-strong: rgba(82, 58, 27, 0.3);
+  --ink: #24170c;
+  --ink-soft: #5e4c37;
+  --muted: #8d775e;
+  --accent-soft: rgba(36, 92, 77, 0.12);
+  --accent-strong: #245c4d;
+  --accent-deep: #173d33;
+  --success-soft: rgba(41, 95, 57, 0.14);
+  --success-strong: #295f39;
+  --warning-soft: rgba(138, 91, 42, 0.15);
+  --warning-strong: #8a5b2a;
+  --danger-soft: rgba(134, 57, 43, 0.14);
+  --danger-strong: #86392b;
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.92), rgba(239, 227, 199, 0.9)),
+    var(--paper);
+  font-family:
+    "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "URW Palladio L",
+    Georgia, serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.6), transparent 38%),
+    linear-gradient(180deg, #f7f1df 0%, #efe3c7 100%);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(113, 88, 53, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(113, 88, 53, 0.025) 1px, transparent 1px);
+  background-size: 100% 34px, 34px 100%;
+  opacity: 0.35;
+}
+
+button,
+input {
+  font: inherit;
+}

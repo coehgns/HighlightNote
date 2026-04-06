@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: HighlightNote
+  datasource:
+    url: ${HIGHLIGHTNOTE_DB_URL:jdbc:mysql://localhost:3306/highlightnote?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul}
+    username: ${HIGHLIGHTNOTE_DB_USERNAME:highlightnote}
+    password: ${HIGHLIGHTNOTE_DB_PASSWORD:highlightnote}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+server:
+  port: 8080
+
+highlightnote:
+  upload:
+    max-file-size-mb: 20
+  storage:
+    upload-directory: ${HIGHLIGHTNOTE_UPLOAD_DIR:./data/uploads}
+    export-directory: ${HIGHLIGHTNOTE_EXPORT_DIR:./data/exports}
