@@ -52,14 +52,23 @@ async function readError(response: Response) {
   return text || `Request failed with status ${response.status}`
 }
 
+function networkErrorMessage() {
+  return `Could not reach the HighlightNote backend at ${API_BASE_URL}. Check that the backend is running and that CORS allows this frontend origin.`
+}
+
 export async function uploadDocument(file: File): Promise<DocumentResponse> {
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await fetch(`${API_BASE_URL}/api/documents`, {
-    method: 'POST',
-    body: formData,
-  })
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}/api/documents`, {
+      method: 'POST',
+      body: formData,
+    })
+  } catch {
+    throw new Error(networkErrorMessage())
+  }
 
   if (!response.ok) {
     throw new Error(await readError(response))
@@ -69,7 +78,12 @@ export async function uploadDocument(file: File): Promise<DocumentResponse> {
 }
 
 export async function getDocument(documentId: string): Promise<DocumentResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/documents/${documentId}`)
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}/api/documents/${documentId}`)
+  } catch {
+    throw new Error(networkErrorMessage())
+  }
 
   if (!response.ok) {
     throw new Error(await readError(response))
@@ -79,7 +93,12 @@ export async function getDocument(documentId: string): Promise<DocumentResponse>
 }
 
 export async function getDocumentNote(documentId: string): Promise<NoteResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/documents/${documentId}/note`)
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}/api/documents/${documentId}/note`)
+  } catch {
+    throw new Error(networkErrorMessage())
+  }
 
   if (!response.ok) {
     throw new Error(await readError(response))
@@ -89,9 +108,14 @@ export async function getDocumentNote(documentId: string): Promise<NoteResponse>
 }
 
 export async function downloadPdfExport(documentId: string): Promise<Blob> {
-  const response = await fetch(`${API_BASE_URL}/api/documents/${documentId}/exports/pdf`, {
-    method: 'POST',
-  })
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}/api/documents/${documentId}/exports/pdf`, {
+      method: 'POST',
+    })
+  } catch {
+    throw new Error(networkErrorMessage())
+  }
 
   if (!response.ok) {
     throw new Error(await readError(response))
