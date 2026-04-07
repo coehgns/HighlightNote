@@ -10,7 +10,7 @@ test('uploads a PDF and shows the generated note draft', async ({ page }) => {
           id: 'doc-1',
           fileName: 'highlighted.pdf',
           status: 'COMPLETED',
-          message: 'Highlights extracted and note draft generated.',
+          message: '하이라이트를 추출했고 노트 초안을 생성했습니다.',
           uploadedAt: '2026-04-06T00:00:00Z',
           highlightCount: 2,
           pageCount: 1,
@@ -33,13 +33,13 @@ test('uploads a PDF and shows the generated note draft', async ({ page }) => {
         sections: [
           {
             sourcePage: 1,
-            heading: 'Page 1 highlights',
-            summary: 'Important highlighted concept',
-            bullets: ['Supporting detail'],
+            heading: '1 페이지 하이라이트',
+            summary: '중요한 하이라이트 개념',
+            bullets: ['보조 설명'],
             sourceHighlights: [
               {
                 page: 1,
-                text: 'Important highlighted concept',
+                text: '중요한 하이라이트 개념',
                 bounds: null,
               },
             ],
@@ -55,8 +55,8 @@ test('uploads a PDF and shows the generated note draft', async ({ page }) => {
     mimeType: 'application/pdf',
     buffer: Buffer.from('%PDF-1.4 mock'),
   })
-  await page.getByRole('button', { name: /generate first draft/i }).click()
+  await page.getByRole('button', { name: /노트 초안 생성/i }).click()
 
-  await expect(page.getByText('Page 1 highlights')).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Important highlighted concept' })).toBeVisible()
+  await expect(page.getByText('1 페이지 하이라이트')).toBeVisible()
+  await expect(page.getByRole('heading', { name: '중요한 하이라이트 개념' })).toBeVisible()
 })

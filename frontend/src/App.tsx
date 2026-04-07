@@ -55,7 +55,7 @@ function App() {
       setError(
         uploadError instanceof Error
           ? uploadError.message
-          : 'Unexpected upload failure occurred.',
+          : '업로드 중 알 수 없는 오류가 발생했습니다.',
       )
       setView('upload')
     } finally {
@@ -100,7 +100,7 @@ function App() {
       setError(
         downloadError instanceof Error
           ? downloadError.message
-          : 'Unexpected export failure occurred.',
+          : 'PDF 내보내기 중 알 수 없는 오류가 발생했습니다.',
       )
     } finally {
       setIsDownloading(false)
@@ -124,25 +124,25 @@ function App() {
         <header className="mb-10 grid gap-8 lg:grid-cols-[1fr_0.72fr] lg:items-end">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[var(--muted)]">
-              Highlight-first study workflow
+              하이라이트 중심 학습 흐름
             </p>
             <h1 className="mt-4 max-w-4xl text-5xl font-semibold leading-[0.94] text-[var(--ink)] md:text-7xl">
               HighlightNote
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-8 text-[var(--ink-soft)] md:text-lg">
-              The first implementation slice connects a real PDF upload, backend highlight inspection,
-              and a source-grounded note preview without hiding failure states.
+              현재 구현은 실제 PDF 업로드, 백엔드 하이라이트 분석, 원문 근거가 연결된
+              노트 미리보기를 하나의 흐름으로 묶습니다.
             </p>
           </div>
           <div className="rounded-[28px] border border-[var(--line)] bg-[var(--card)] p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">
-              Current slice
+              현재 구현 범위
             </p>
             <div className="mt-4 grid gap-4 text-sm leading-7 text-[var(--ink-soft)] md:grid-cols-2">
-              <p>1. Upload a PDF from the browser.</p>
-              <p>2. Detect highlight annotations in Kotlin.</p>
-              <p>3. Group extracted text into first-pass note sections.</p>
-              <p>4. Render source-linked results in React.</p>
+              <p>1. 브라우저에서 PDF를 업로드합니다.</p>
+              <p>2. Kotlin 백엔드에서 하이라이트 annotation을 찾습니다.</p>
+              <p>3. 추출 텍스트를 1차 노트 섹션으로 정리합니다.</p>
+              <p>4. 원문 근거가 연결된 결과를 React에서 보여줍니다.</p>
             </div>
           </div>
         </header>
@@ -160,7 +160,7 @@ function App() {
         {view === 'processing' ? (
           <ProcessingPage
             document={deferredDocument}
-            fileName={selectedFile?.name ?? 'Preparing upload'}
+            fileName={selectedFile?.name ?? '업로드 준비 중'}
           />
         ) : null}
 

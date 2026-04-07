@@ -31,6 +31,7 @@ export interface HighlightExcerpt {
 }
 
 export interface NoteSection {
+  sourcePage: number
   heading: string
   summary: string
   bullets: string[]
@@ -53,7 +54,7 @@ async function readError(response: Response) {
 }
 
 function networkErrorMessage() {
-  return `Could not reach the HighlightNote backend at ${API_BASE_URL}. Check that the backend is running and that CORS allows this frontend origin.`
+  return `${API_BASE_URL}의 HighlightNote 백엔드에 연결할 수 없습니다. 백엔드 실행 여부와 현재 프론트 origin에 대한 CORS 허용 설정을 확인해 주세요.`
 }
 
 export async function uploadDocument(file: File): Promise<DocumentResponse> {

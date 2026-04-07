@@ -1,13 +1,13 @@
 import type { DocumentStatus } from '../api/documents'
 
 const statusCopy: Record<DocumentStatus, string> = {
-  UPLOADED: 'Uploaded',
-  PROCESSING: 'Processing',
-  COMPLETED: 'Ready',
-  NO_HIGHLIGHTS: 'No Highlights',
-  UNSUPPORTED_PDF: 'Unsupported PDF',
-  PARSING_FAILED: 'Parsing Failed',
-  NOT_FOUND: 'Missing',
+  UPLOADED: '업로드됨',
+  PROCESSING: '처리 중',
+  COMPLETED: '완료',
+  NO_HIGHLIGHTS: '하이라이트 없음',
+  UNSUPPORTED_PDF: '지원 불가 PDF',
+  PARSING_FAILED: '파싱 실패',
+  NOT_FOUND: '문서 없음',
 }
 
 const statusTone: Record<DocumentStatus, string> = {

@@ -12,11 +12,13 @@ interface ResultPageProps {
 }
 
 const failureCopy = {
-  NO_HIGHLIGHTS: 'The PDF uploaded correctly, but no highlight annotations were detected.',
-  UNSUPPORTED_PDF: 'The file was parsed, but the PDF structure is not supported yet.',
-  PARSING_FAILED: 'The backend could not read this PDF reliably. Try another highlighted sample.',
-  NOT_FOUND: 'The uploaded document could not be found in memory.',
+  NO_HIGHLIGHTS: 'PDF 업로드는 성공했지만 하이라이트 annotation을 찾지 못했습니다.',
+  UNSUPPORTED_PDF: '파일은 읽었지만 현재 지원하지 않는 PDF 구조입니다.',
+  PARSING_FAILED: '백엔드가 이 PDF를 안정적으로 읽지 못했습니다. 다른 샘플로 다시 시도해 주세요.',
+  NOT_FOUND: '업로드한 문서를 현재 저장소에서 찾을 수 없습니다.',
 } as const
+
+const successCopy = '하이라이트를 추출했고 노트 초안을 생성했습니다.'
 
 export function ResultPage({
   document,
@@ -43,12 +45,12 @@ export function ResultPage({
             </p>
           </div>
           <h2 className="mt-4 text-4xl font-semibold text-[var(--ink)]">
-            {note?.title ?? 'Upload review'}
+            {note?.title ?? '업로드 결과'}
           </h2>
           <p className="mt-4 max-w-3xl text-base leading-8 text-[var(--ink-soft)]">
             {isFailure
               ? failureCopy[document.status as keyof typeof failureCopy]
-              : document.message}
+              : successCopy}
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -59,7 +61,7 @@ export function ResultPage({
               onClick={onDownload}
               type="button"
             >
-              {isDownloading ? 'Preparing PDF...' : 'Download PDF'}
+              {isDownloading ? 'PDF 준비 중...' : 'PDF 다운로드'}
             </button>
           ) : null}
           <button
@@ -67,14 +69,14 @@ export function ResultPage({
             onClick={onRefresh}
             type="button"
           >
-            Refresh status
+            상태 새로고침
           </button>
           <button
             className="rounded-full bg-[var(--accent-strong)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--accent-deep)]"
             onClick={onReset}
             type="button"
           >
-            Upload another PDF
+            다른 PDF 업로드
           </button>
         </div>
       </div>
@@ -82,19 +84,19 @@ export function ResultPage({
       <div className="grid gap-6 md:grid-cols-3">
         <div className="rounded-[24px] bg-[var(--panel)] p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-            Highlights
+            하이라이트 수
           </p>
           <p className="mt-3 text-3xl font-semibold text-[var(--ink)]">{document.highlightCount}</p>
         </div>
         <div className="rounded-[24px] bg-[var(--panel)] p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-            Pages
+            페이지 수
           </p>
           <p className="mt-3 text-3xl font-semibold text-[var(--ink)]">{document.pageCount}</p>
         </div>
         <div className="rounded-[24px] bg-[var(--panel)] p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-            Sections
+            섹션 수
           </p>
           <p className="mt-3 text-3xl font-semibold text-[var(--ink)]">{note?.sections.length ?? 0}</p>
         </div>
@@ -108,8 +110,8 @@ export function ResultPage({
         </div>
       ) : (
         <div className="rounded-[28px] border border-[var(--line)] bg-[var(--card)] p-8 text-sm leading-8 text-[var(--ink-soft)]">
-          The current result view keeps unsupported and failure states explicit instead of hiding them.
-          Upload another file once you have an annotation-based PDF to continue the MVP flow.
+          현재 결과 화면은 실패 상태를 숨기지 않고 그대로 보여줍니다.
+          annotation 기반 하이라이트가 있는 PDF를 준비한 뒤 다시 업로드해 주세요.
         </div>
       )}
     </section>
