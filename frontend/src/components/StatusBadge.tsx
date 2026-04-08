@@ -27,7 +27,7 @@ interface StatusBadgeProps {
 export function StatusBadge({ status }: StatusBadgeProps) {
   return (
     <span
-      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${statusTone[status]}`}
+      className={`inline-flex rounded-full border border-white/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] shadow-[var(--shadow-soft)] ${statusTone[status]}`}
     >
       {statusCopy[status]}
     </span>

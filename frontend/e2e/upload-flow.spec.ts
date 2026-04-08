@@ -55,7 +55,7 @@ test('uploads a PDF and shows the generated note draft', async ({ page }) => {
     mimeType: 'application/pdf',
     buffer: Buffer.from('%PDF-1.4 mock'),
   })
-  await page.getByRole('button', { name: /노트 초안 생성/i }).click()
+  await page.getByRole('button', { name: /문서 처리 시작|Process Document/i }).click()
 
   await expect(page.getByText('1 페이지 하이라이트')).toBeVisible()
   await expect(page.getByRole('heading', { name: '중요한 하이라이트 개념' })).toBeVisible()

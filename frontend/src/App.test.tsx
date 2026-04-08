@@ -60,7 +60,7 @@ describe('App', () => {
     const file = new File(['pdf'], 'highlighted.pdf', { type: 'application/pdf' })
     fireEvent.change(fileInput, { target: { files: [file] } })
 
-    await userEvent.click(screen.getByRole('button', { name: /노트 초안 생성/i }))
+    await userEvent.click(screen.getByRole('button', { name: /문서 처리 시작|Process Document/i }))
 
     await screen.findByText('1 페이지 하이라이트')
     expect(screen.getByRole('heading', { name: '핵심 개념' })).toBeInTheDocument()
@@ -75,7 +75,7 @@ describe('App', () => {
     const file = new File(['text'], 'notes.txt', { type: 'text/plain' })
     fireEvent.change(fileInput, { target: { files: [file] } })
 
-    await userEvent.click(screen.getByRole('button', { name: /노트 초안 생성/i }))
+    await userEvent.click(screen.getByRole('button', { name: /문서 처리 시작|Process Document/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/PDF 파일만 업로드할 수 있습니다./i)).toBeInTheDocument()
