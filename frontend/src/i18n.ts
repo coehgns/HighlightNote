@@ -119,7 +119,11 @@ const resources = {
         btnRefresh: '상태 새로고침',
         noteResultLabel: '학습 노트 결과',
         fallbackTitle: '업로드 결과',
-        emptyResult: '결과 화면은 파싱 실패 상태를 숨기지 않고 그대로 보여줍니다. 하이라이트가 포함된 정상적인 PDF로 다시 업로드해 보세요.'
+        emptyResult: '결과 화면은 파싱 실패 상태를 숨기지 않고 그대로 보여줍니다. 하이라이트가 포함된 정상적인 PDF로 다시 업로드해 보세요.',
+        noteHighlightFrom: '{{page}} 페이지 하이라이트',
+        noteSourceLinked: '원본 연결됨',
+        noteSourceHighlights: '원본 하이라이트',
+        notePageNum: '페이지 {{page}}'
       }
     }
   },
@@ -240,7 +244,11 @@ const resources = {
         btnRefresh: 'Refresh Status',
         noteResultLabel: 'Study Note Result',
         fallbackTitle: 'Upload Result',
-        emptyResult: 'The result screen faithfully mirrors error states without hiding them. Prepare a standard PDF with highlights to process an actual draft.'
+        emptyResult: 'The result screen faithfully mirrors error states without hiding them. Prepare a standard PDF with highlights to process an actual draft.',
+        noteHighlightFrom: 'Highlight from Page {{page}}',
+        noteSourceLinked: 'Source-linked',
+        noteSourceHighlights: 'Source Highlights',
+        notePageNum: 'Page {{page}}'
       }
     }
   }

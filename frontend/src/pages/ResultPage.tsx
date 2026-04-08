@@ -1,9 +1,9 @@
 import type { DocumentResponse, NoteResponse } from '../api/documents'
 import { NoteSectionCard } from '../components/NoteSectionCard'
 import { StatusBadge } from '../components/StatusBadge'
-import { Button } from '../components/ui/Button'
 import { PanelCard } from '../components/ui/PanelCard'
 import { StatCard } from '../components/ui/StatCard'
+import { useTranslation } from 'react-i18next'
 
 interface ResultPageProps {
   document: DocumentResponse
@@ -21,8 +21,6 @@ const failureCopy = {
   NOT_FOUND: '업로드한 문서를 현재 저장소에서 찾을 수 없습니다.',
 } as const
 
-const successCopy = '하이라이트를 추출했고 노트 초안을 생성했습니다.'
-
 export function ResultPage({
   document,
   note,
@@ -31,6 +29,8 @@ export function ResultPage({
   onReset,
   onRefresh,
 }: ResultPageProps) {
+  const { t } = useTranslation()
+
   const isFailure =
     document.status === 'NO_HIGHLIGHTS' ||
     document.status === 'UNSUPPORTED_PDF' ||
@@ -40,78 +40,83 @@ export function ResultPage({
   return (
     <section className="space-y-8">
       <div className="grid gap-6 xl:grid-cols-[0.34fr_0.66fr]">
-        <div className="space-y-5">
-          <PanelCard tone="contrast" className="p-6">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">
-              Document Metadata
+        <div className="space-y-6">
+          <PanelCard tone="contrast" className="p-8 border border-[var(--outline-variant)]/20 shadow-sm">
+            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--muted)]">
+              {t('result.tagline')}
             </p>
-            <h2 className="mt-4 text-3xl font-semibold leading-[1.08] text-[var(--ink)]">
-              하이라이트 기반
-              <br />
-              노트 초안 생성
+            <h2 className="mt-4 text-3xl font-extrabold leading-[1.1] text-[var(--primary)] text-pre-wrap whitespace-pre-line">
+              {t('result.title').replace(/\\n/g, '\n')}
             </h2>
-            <p className="mt-4 text-sm leading-7 text-[var(--ink-soft)]">
+            <p className="mt-5 text-[13px] leading-relaxed text-[var(--ink-soft)] bg-[var(--surface)] p-3.5 rounded border border-[var(--surface-container)]">
               {isFailure
                 ? failureCopy[document.status as keyof typeof failureCopy]
-                : successCopy}
+                : t('result.successDesc')}
             </p>
 
-            <div className="mt-6 space-y-4">
-              <StatCard label="원본 파일" value={document.fileName} hint="현재 분석 결과가 연결된 문서" />
-              <StatCard label="하이라이트 수" value={document.highlightCount} hint="추출 가능한 annotation 수" />
-              <StatCard label="전체 페이지" value={document.pageCount} hint="문서에서 인식한 페이지 수" />
+            <div className="mt-6 space-y-3 pt-5 border-t border-[var(--surface-container)]">
+              <StatCard label={t('result.statFile')} value={document.fileName} hint={t('result.statFileHint')} />
+              <StatCard label={t('result.statCount')} value={document.highlightCount} hint={t('result.statCountHint')} />
+              <StatCard label={t('result.statPages')} value={document.pageCount} hint={t('result.statPagesHint')} />
             </div>
           </PanelCard>
 
-          <PanelCard tone="tint" className="p-5">
-            <div className="space-y-3">
+          <PanelCard tone="tint" className="p-6 bg-[var(--surface-container-highest)] border border-[var(--outline-variant)]/20 shadow-inner">
+            <div className="space-y-4">
               {!isFailure ? (
-                <Button
-                  className="w-full"
+                <button
+                  className={`w-full inline-flex items-center justify-center gap-2 rounded bg-[#1b4332] px-8 py-3.5 text-[13px] font-bold text-white transition-all hover:bg-[#153627] ${
+                    isDownloading ? 'opacity-50 cursor-not-allowed' : 'shadow-md'
+                  }`}
                   disabled={isDownloading}
                   onClick={onDownload}
                   type="button"
                 >
-                  {isDownloading ? 'PDF 준비 중...' : 'PDF 학습 정리본 다운로드'}
-                </Button>
+                  <span className="material-symbols-outlined text-[18px]">download</span>
+                  {isDownloading ? t('result.btnDownloading') : t('result.btnDownload')}
+                </button>
               ) : null}
-              <Button className="w-full" variant="secondary" onClick={onReset} type="button">
-                새 PDF 업로드
-              </Button>
-              <Button className="w-full" variant="ghost" onClick={onRefresh} type="button">
-                상태 새로고침
-              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <button className="w-full inline-flex items-center justify-center gap-1.5 rounded bg-white px-4 py-3 text-xs font-bold text-[var(--ink)] border border-[var(--surface-container)] hover:bg-[var(--surface-container-low)] transition-colors" onClick={onReset} type="button">
+                  <span className="material-symbols-outlined text-[16px]">upload_file</span>
+                  {t('result.btnNew')}
+                </button>
+                <button className="w-full inline-flex items-center justify-center gap-1.5 rounded bg-transparent px-4 py-3 text-xs font-bold text-[var(--ink-soft)] hover:bg-black/5 hover:text-[var(--ink)] transition-colors" onClick={onRefresh} type="button">
+                  <span className="material-symbols-outlined text-[16px]">refresh</span>
+                  {t('result.btnRefresh')}
+                </button>
+              </div>
             </div>
           </PanelCard>
         </div>
 
         <div className="space-y-6">
-          <PanelCard className="p-6 md:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+          <PanelCard className="p-6 md:p-8 border-none bg-white shadow-xl ring-1 ring-[var(--outline-variant)]/10">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--surface-container)] pb-6 mb-8">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">
-                  학습 노트 결과
+                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--muted)]">
+                  {t('result.noteResultLabel')}
                 </p>
-                <h2 className="mt-3 text-4xl font-semibold leading-[1.02] text-[var(--ink)]">
-                  {note?.title ?? '업로드 결과'}
+                <h2 className="mt-3 text-3xl font-extrabold leading-[1.05] text-[var(--primary)] font-['Noto_Serif_KR']">
+                  {note?.title ?? t('result.fallbackTitle')}
                 </h2>
               </div>
               <StatusBadge status={document.status} />
             </div>
-          </PanelCard>
 
-          {note?.sections.length ? (
-            <div className="space-y-6">
-              {note.sections.map((section) => (
-                <NoteSectionCard key={section.heading} section={section} />
-              ))}
-            </div>
-          ) : (
-            <PanelCard tone="contrast" className="p-8 text-sm leading-8 text-[var(--ink-soft)]">
-              현재 결과 화면은 실패 상태를 숨기지 않고 그대로 보여줍니다.
-              annotation 기반 하이라이트가 있는 PDF를 준비한 뒤 다시 업로드해 주세요.
-            </PanelCard>
-          )}
+            {note?.sections.length ? (
+              <div className="space-y-12">
+                {note.sections.map((section) => (
+                  <NoteSectionCard key={section.heading} section={section} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded border border-dashed border-[var(--danger-strong)]/20 bg-[var(--danger-soft)]/20 p-8 text-sm leading-8 text-[var(--danger-strong)] text-center">
+                <span className="material-symbols-outlined text-4xl mb-4 opacity-50 block">description</span>
+                {t('result.emptyResult')}
+              </div>
+            )}
+          </PanelCard>
         </div>
       </div>
     </section>
