@@ -2,9 +2,10 @@ import { useTranslation } from 'react-i18next'
 import { useState, useRef, useEffect } from 'react'
 
 interface TopNavigationProps {
+  onReset: () => void
 }
 
-export function TopNavigation({}: TopNavigationProps) {
+export function TopNavigation({ onReset }: TopNavigationProps) {
   const { t, i18n } = useTranslation()
   const [isLangOpen, setIsLangOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -27,7 +28,13 @@ export function TopNavigation({}: TopNavigationProps) {
   return (
     <nav className="glass-nav fixed inset-x-0 top-0 z-50">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-8 py-4">
-        <div className="text-xl font-bold tracking-tighter text-emerald-900">HighlightNote</div>
+        <button
+          className="text-xl font-bold tracking-tighter text-emerald-900 transition-opacity hover:opacity-75"
+          onClick={onReset}
+          type="button"
+        >
+          HighlightNote
+        </button>
 
         <div className="hidden items-center gap-10 md:flex">
           <button
@@ -35,12 +42,6 @@ export function TopNavigation({}: TopNavigationProps) {
             type="button"
           >
             {t('nav.library')}
-          </button>
-          <button
-            className='font-["Manrope"] text-sm tracking-tight leading-relaxed text-emerald-800/60 transition-colors hover:text-emerald-900'
-            type="button"
-          >
-            {t('nav.help')}
           </button>
         </div>
 

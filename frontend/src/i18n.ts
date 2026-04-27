@@ -10,7 +10,6 @@ const resources = {
       nav: {
         library: '내 서재',
         upload: '새 업로드',
-        help: '도움말',
         search: '아카이브 검색...',
         signIn: '로그인',
       },
@@ -125,7 +124,6 @@ const resources = {
       nav: {
         library: 'My Library',
         upload: 'New Upload',
-        help: 'Help',
         search: 'Search archive...',
         signIn: 'Sign In',
       },
