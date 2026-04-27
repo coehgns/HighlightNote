@@ -1,5 +1,4 @@
 import { startTransition, useDeferredValue, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import {
   downloadPdfExport,
   getDocument,
@@ -17,7 +16,6 @@ import { TopNavigation } from './components/ui/TopNavigation'
 type View = 'upload' | 'processing' | 'result'
 
 function App() {
-  const { t } = useTranslation()
   const [view, setView] = useState<View>('upload')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [document, setDocument] = useState<DocumentResponse | null>(null)
@@ -155,29 +153,6 @@ function App() {
             />
           ) : null}
         </main>
-
-        <footer className="border-t border-emerald-100/20 bg-emerald-50 px-8 py-12">
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <div className='font-["Manrope"] text-sm tracking-wide text-emerald-800/70'>
-              {t('footer.copyright')}
-            </div>
-            <div className="flex gap-8">
-              <a className='font-["Manrope"] text-sm tracking-wide text-emerald-800/70 opacity-80 transition-opacity hover:text-emerald-900 hover:opacity-100' href="#">
-                {t('footer.privacy')}
-              </a>
-              <a className='font-["Manrope"] text-sm tracking-wide text-emerald-800/70 opacity-80 transition-opacity hover:text-emerald-900 hover:opacity-100' href="#">
-                {t('footer.terms')}
-              </a>
-              <a className='font-["Manrope"] text-sm tracking-wide text-emerald-800/70 opacity-80 transition-opacity hover:text-emerald-900 hover:opacity-100' href="#">
-                {t('footer.institutional')}
-              </a>
-            </div>
-            <div className="flex gap-4">
-              <span className="material-symbols-outlined text-xl text-emerald-900/40">school</span>
-              <span className="material-symbols-outlined text-xl text-emerald-900/40">account_balance</span>
-            </div>
-          </div>
-        </footer>
       </AppShell>
     </div>
   )

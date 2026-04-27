@@ -6,7 +6,7 @@ interface TopNavigationProps {
 }
 
 export function TopNavigation({ onReset }: TopNavigationProps) {
-  const { t, i18n } = useTranslation()
+  const { i18n } = useTranslation()
   const [isLangOpen, setIsLangOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -36,26 +36,7 @@ export function TopNavigation({ onReset }: TopNavigationProps) {
           HighlightNote
         </button>
 
-        <div className="hidden items-center gap-10 md:flex">
-          <button
-            className='border-b-2 border-emerald-900 pb-1 font-["Manrope"] text-sm font-semibold tracking-tight leading-relaxed text-emerald-900'
-            type="button"
-          >
-            {t('nav.library')}
-          </button>
-        </div>
-
         <div className="flex items-center gap-6">
-          <div className="relative hidden sm:block">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 scale-75 text-emerald-800/60">
-              search
-            </span>
-            <input
-              className="w-48 rounded bg-[var(--surface-container-low)] py-2 pl-10 pr-4 text-sm transition-all duration-300 focus:ring-1 focus:ring-[var(--primary-container)]"
-              placeholder={t('nav.search')}
-              type="text"
-            />
-          </div>
           <div className="relative" ref={dropdownRef}>
             <button
               className="flex items-center gap-1 rounded bg-[var(--surface-container-high)] px-2 py-1 text-xs font-bold text-[var(--ink-soft)] transition-colors hover:bg-[var(--outline-variant)]/30"

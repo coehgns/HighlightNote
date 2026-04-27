@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -8,7 +8,7 @@ const revokeObjectURL = vi.fn()
 
 describe('App', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn())
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify([]))))
     vi.stubGlobal('URL', {
       createObjectURL,
       revokeObjectURL,
@@ -16,12 +16,14 @@ describe('App', () => {
   })
 
   afterEach(() => {
+    cleanup()
     vi.unstubAllGlobals()
     vi.clearAllMocks()
   })
 
   it('renders note sections after a successful upload', async () => {
     vi.mocked(fetch)
+      .mockResolvedValueOnce(new Response(JSON.stringify([])))
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
@@ -67,7 +69,9 @@ describe('App', () => {
   })
 
   it('shows upload errors from the API', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(new Response('PDF 파일만 업로드할 수 있습니다.', { status: 400 }))
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(new Response(JSON.stringify([])))
+      .mockResolvedValueOnce(new Response('PDF 파일만 업로드할 수 있습니다.', { status: 400 }))
 
     render(<App />)
 
