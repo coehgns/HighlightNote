@@ -94,6 +94,22 @@ class DocumentService(
     }
 
     @Transactional
+    fun getRecentDocuments(): List<DocumentResponse> {
+        val documents = documentRepository.findTop6ByOrderByCreatedAtDesc()
+        if (documents.isEmpty()) return emptyList()
+        
+        val docIds = documents.mapNotNull { it.id }
+        val jobs = noteJobRepository.findByDocumentIdIn(docIds).associateBy { it.documentId }
+        
+        return documents.map { doc ->
+            val job = jobs[doc.id]
+            val status = job?.status ?: DocumentStatus.PROCESSING
+            val message = job?.message ?: ""
+            doc.toResponse(status, message)
+        }
+    }
+
+    @Transactional
     fun getNote(documentId: String): NoteResponse {
         val document = findDocument(documentId)
         val job = findJob(document.id!!)
@@ -132,6 +148,32 @@ class DocumentService(
             ),
         )
         return result
+    }
+
+    @Transactional
+    fun deleteDocument(documentId: String) {
+        val document = findDocument(documentId)
+        val rowId = document.id!!
+
+        // 1. Delete database records
+        highlightRepository.deleteByDocumentId(rowId)
+        noteSectionRepository.deleteByDocumentId(rowId)
+        noteJobRepository.deleteByDocumentId(rowId)
+        
+        val exports = exportRepository.findByDocumentIdOrderByCreatedAtDesc(rowId)
+        exportRepository.deleteByDocumentId(rowId)
+        
+        documentRepository.delete(document)
+
+        // 2. Delete physical files (Best effort)
+        try {
+            Files.deleteIfExists(uploadStorageDirectory.resolve(document.storedFileName))
+            exports.forEach { export ->
+                try {
+                    Files.deleteIfExists(Path.of(export.filePath))
+                } catch (_: Exception) {}
+            }
+        } catch (_: Exception) {}
     }
 
     private fun findDocument(documentId: String): DocumentEntity {

@@ -93,6 +93,36 @@ export async function getDocument(documentId: string): Promise<DocumentResponse>
   return response.json()
 }
 
+export async function deleteDocument(documentId: string): Promise<void> {
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}/api/documents/${documentId}`, {
+      method: 'DELETE',
+    })
+  } catch {
+    throw new Error(networkErrorMessage())
+  }
+
+  if (!response.ok) {
+    throw new Error(await readError(response))
+  }
+}
+
+export async function getRecentDocuments(): Promise<DocumentResponse[]> {
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}/api/documents`)
+  } catch {
+    throw new Error(networkErrorMessage())
+  }
+
+  if (!response.ok) {
+    throw new Error(await readError(response))
+  }
+
+  return response.json()
+}
+
 export async function getDocumentNote(documentId: string): Promise<NoteResponse> {
   let response: Response
   try {

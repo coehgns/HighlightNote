@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -26,6 +27,11 @@ class DocumentController(
         return documentService.createDocument(file)
     }
 
+    @GetMapping
+    fun getRecentDocuments(): List<DocumentResponse> {
+        return documentService.getRecentDocuments()
+    }
+
     @GetMapping("/{documentId}")
     fun getDocument(@PathVariable documentId: String): DocumentResponse {
         return documentService.getDocument(documentId)
@@ -34,6 +40,12 @@ class DocumentController(
     @GetMapping("/{documentId}/note")
     fun getNote(@PathVariable documentId: String): NoteResponse {
         return documentService.getNote(documentId)
+    }
+
+    @DeleteMapping("/{documentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun deleteDocument(@PathVariable documentId: String) {
+        documentService.deleteDocument(documentId)
     }
 
     @PostMapping("/{documentId}/exports/pdf")

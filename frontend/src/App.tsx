@@ -124,7 +124,7 @@ function App() {
   return (
     <div className="relative overflow-hidden">
       <AppShell>
-        <TopNavigation onReset={resetFlow} />
+        <TopNavigation />
 
         <main className="px-8 pt-32 pb-20">
           {view === 'upload' ? (

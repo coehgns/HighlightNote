@@ -4,6 +4,9 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   ko: {
     translation: {
+      common: {
+        confirmDelete: '이 문서를 영구적으로 삭제하시겠습니까?',
+      },
       nav: {
         library: '내 서재',
         upload: '새 업로드',
@@ -51,19 +54,6 @@ const resources = {
         date1: '2023년 10월 12일',
         date2: '5시간 전 추가됨',
         retry: '업로드 재시도',
-      },
-      deep: {
-        tag: '심층 분석 도구',
-        title: '의미 기반 상호 참조 엔진',
-        desc: '전체 서재를 연결하세요. 독자적인 학술 그래프 신경망을 사용하여 여러 문서들 사이의 숨겨진 연관성을 발견할 수 있습니다.',
-        sync: '서재 동기화 시작',
-      },
-      stats: {
-        title: '아카이브 통계',
-        storage: '사용된 용량',
-        monographs: '단행본',
-        citations: '인용구',
-        settings: '아카이브 설정',
       },
       footer: {
         copyright: '© 2024 HighlightNote. 학술 문서 처리 서비스.',
@@ -129,6 +119,9 @@ const resources = {
   },
   en: {
     translation: {
+      common: {
+        confirmDelete: 'Are you sure you want to permanently delete this document?',
+      },
       nav: {
         library: 'My Library',
         upload: 'New Upload',
@@ -176,19 +169,6 @@ const resources = {
         date1: '12 Oct 2023',
         date2: 'Added 5 hours ago',
         retry: 'Retry Upload',
-      },
-      deep: {
-        tag: 'Deep Analysis Tool',
-        title: 'Semantic Cross-Reference Engine',
-        desc: 'Link your entire library. Discover hidden connections between disparate manuscripts using our proprietary academic graph neural network.',
-        sync: 'Initialize Library Sync',
-      },
-      stats: {
-        title: 'Archive Statistics',
-        storage: 'Storage Utilized',
-        monographs: 'Monographs',
-        citations: 'Citations',
-        settings: 'Archive Settings',
       },
       footer: {
         copyright: '© 2024 HighlightNote. An Academic Monograph Service.',

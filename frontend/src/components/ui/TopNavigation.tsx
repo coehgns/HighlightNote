@@ -2,10 +2,9 @@ import { useTranslation } from 'react-i18next'
 import { useState, useRef, useEffect } from 'react'
 
 interface TopNavigationProps {
-  onReset: () => void
 }
 
-export function TopNavigation({ onReset }: TopNavigationProps) {
+export function TopNavigation({}: TopNavigationProps) {
   const { t, i18n } = useTranslation()
   const [isLangOpen, setIsLangOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -36,13 +35,6 @@ export function TopNavigation({ onReset }: TopNavigationProps) {
             type="button"
           >
             {t('nav.library')}
-          </button>
-          <button
-            className='font-["Manrope"] text-sm tracking-tight leading-relaxed text-emerald-800/60 transition-colors hover:text-emerald-900'
-            onClick={onReset}
-            type="button"
-          >
-            {t('nav.upload')}
           </button>
           <button
             className='font-["Manrope"] text-sm tracking-tight leading-relaxed text-emerald-800/60 transition-colors hover:text-emerald-900'

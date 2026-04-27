@@ -4,10 +4,13 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface DocumentRepository : JpaRepository<DocumentEntity, Long> {
     fun findByPublicId(publicId: String): DocumentEntity?
+    fun findTop6ByOrderByCreatedAtDesc(): List<DocumentEntity>
 }
 
 interface NoteJobRepository : JpaRepository<NoteJobEntity, Long> {
     fun findByDocumentId(documentId: Long): NoteJobEntity?
+    fun findByDocumentIdIn(documentIds: Collection<Long>): List<NoteJobEntity>
+    fun deleteByDocumentId(documentId: Long)
 }
 
 interface HighlightRepository : JpaRepository<HighlightEntity, Long> {
@@ -22,4 +25,5 @@ interface NoteSectionRepository : JpaRepository<NoteSectionEntity, Long> {
 
 interface ExportRepository : JpaRepository<ExportEntity, Long> {
     fun findByDocumentIdOrderByCreatedAtDesc(documentId: Long): List<ExportEntity>
+    fun deleteByDocumentId(documentId: Long)
 }

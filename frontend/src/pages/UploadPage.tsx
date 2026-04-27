@@ -1,4 +1,6 @@
+import { useEffect, useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getRecentDocuments, deleteDocument, downloadPdfExport, type DocumentResponse, type DocumentStatus } from '../api/documents'
 
 interface UploadPageProps {
   selectedFile: File | null
@@ -13,11 +15,21 @@ function LibraryCard({
   subtitle,
   status,
   tone,
+  dateStr,
+  onRetry,
+  onDelete,
+  onDownload,
+  onClick,
 }: {
   title: string
   subtitle: string
   status: string
   tone: 'completed' | 'processing' | 'error'
+  dateStr?: string
+  onRetry?: () => void
+  onDelete?: () => void
+  onDownload?: () => void
+  onClick?: () => void
 }) {
   const { t } = useTranslation()
 
@@ -41,7 +53,10 @@ function LibraryCard({
       : 'bg-[var(--primary-container)]'
 
   return (
-    <div className="rounded border border-transparent bg-[var(--surface-container-lowest)] p-8 transition-all hover:border-[var(--outline-variant)]/20">
+    <div 
+      className={`rounded border border-transparent bg-[var(--surface-container-lowest)] p-8 transition-all hover:border-[var(--outline-variant)]/20 ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
       <div className="mb-12 flex items-start justify-between">
         <div className="relative flex h-16 w-12 items-center justify-center overflow-hidden bg-emerald-50">
           <span className={`material-symbols-outlined text-2xl ${iconClass}`}>
@@ -72,7 +87,14 @@ function LibraryCard({
       ) : (
         <div className="flex items-center gap-4 border-t border-[var(--surface-container)] pt-6">
           {tone === 'error' ? (
-            <button className="text-xs font-bold uppercase tracking-widest text-[var(--primary-container)] hover:underline" type="button">
+            <button 
+              className="text-xs font-bold uppercase tracking-widest text-[var(--primary-container)] hover:underline" 
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onRetry?.()
+              }}
+            >
               {t('recent.retry')}
             </button>
           ) : (
@@ -80,18 +102,36 @@ function LibraryCard({
               <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
                 {t('recent.processed')}
               </span>
-              <span className="text-sm font-medium">{tone === 'completed' ? t('recent.date1') : t('recent.date2')}</span>
+              <span className="text-sm font-medium">{dateStr || t('recent.date1')}</span>
             </div>
           )}
 
           <div className="ml-auto flex gap-2">
-            <button className="p-2 transition-colors hover:bg-[var(--surface-container-low)]" type="button">
+            <button 
+              className="p-2 transition-colors hover:bg-[var(--surface-container-low)]" 
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (tone === 'error') {
+                  onDelete?.()
+                } else {
+                  onDownload?.()
+                }
+              }}
+            >
               <span className={`material-symbols-outlined text-xl ${tone === 'error' ? 'text-[var(--danger-strong)]/70' : 'text-[var(--ink-soft)]'}`}>
                 {tone === 'error' ? 'delete' : 'download'}
               </span>
             </button>
             {tone === 'completed' ? (
-              <button className="p-2 transition-colors hover:bg-[var(--surface-container-low)]" type="button">
+              <button 
+                className="p-2 transition-colors hover:bg-[var(--surface-container-low)]" 
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  // share logic could go here
+                }}
+              >
                 <span className="material-symbols-outlined text-xl text-[var(--ink-soft)]">share</span>
               </button>
             ) : null}
@@ -105,11 +145,69 @@ function LibraryCard({
 export function UploadPage({
   selectedFile,
   isSubmitting,
-  error,
+  error: uploadError,
   onFileSelect,
   onSubmit,
 }: UploadPageProps) {
   const { t } = useTranslation()
+  const [recentDocs, setRecentDocs] = useState<DocumentResponse[]>([])
+  const [isLoadingRecent, setIsLoadingRecent] = useState(true)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const fetchRecent = () => {
+    getRecentDocuments()
+      .then(setRecentDocs)
+      .catch((err) => console.error('Failed to fetch recent docs', err))
+      .finally(() => setIsLoadingRecent(false))
+  }
+
+  useEffect(() => {
+    fetchRecent()
+  }, [])
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm(t('common.confirmDelete') || 'Are you sure you want to delete this document?')) return
+    try {
+      await deleteDocument(id)
+      fetchRecent()
+    } catch (err) {
+      console.error(err)
+      alert('Failed to delete document')
+    }
+  }
+
+  const handleRetry = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleDownload = async (id: string, fileName: string) => {
+    try {
+      const blob = await downloadPdfExport(id)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName.replace('.pdf', '_note.pdf')
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      console.error(err)
+      alert('Failed to download PDF')
+    }
+  }
+
+  const formatTone = (status: DocumentStatus): 'completed' | 'processing' | 'error' => {
+    if (status === 'COMPLETED') return 'completed'
+    if (status === 'UPLOADED' || status === 'PROCESSING') return 'processing'
+    return 'error'
+  }
+
+  const formatStatus = (status: DocumentStatus): string => {
+    if (status === 'COMPLETED') return t('recent.status.completed')
+    if (status === 'UPLOADED' || status === 'PROCESSING') return t('recent.status.processing')
+    return t('recent.status.error')
+  }
 
   return (
     <section className="space-y-12 px-8">
@@ -163,6 +261,7 @@ export function UploadPage({
                       className="hidden"
                       type="file"
                       accept="application/pdf,.pdf"
+                      ref={fileInputRef}
                       onChange={(event) => {
                         const file = event.target.files?.[0]
                         if (file) {
@@ -178,8 +277,8 @@ export function UploadPage({
                   </label>
                 )}
 
-                {error ? (
-                  <p className="mt-4 text-sm font-medium text-[var(--danger-strong)]">{error}</p>
+                {uploadError ? (
+                  <p className="mt-4 text-sm font-medium text-[var(--danger-strong)]">{uploadError}</p>
                 ) : null}
               </div>
 
@@ -202,66 +301,42 @@ export function UploadPage({
         </div>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <LibraryCard
-            title={t('recent.mock1.title')}
-            subtitle={t('recent.mock1.desc')}
-            status={t('recent.status.completed')}
-            tone="completed"
-          />
-          <LibraryCard
-            title={t('recent.mock2.title')}
-            subtitle={t('recent.mock2.desc')}
-            status={t('recent.status.processing')}
-            tone="processing"
-          />
-          <LibraryCard
-            title={t('recent.mock3.title')}
-            subtitle={t('recent.mock3.desc')}
-            status={t('recent.status.error')}
-            tone="error"
-          />
-
-          <div className="rounded-lg bg-[var(--primary-container)] p-10 text-white lg:col-span-2">
-            <span className="mb-6 block text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">
-              {t('deep.tag')}
-            </span>
-            <h3 className="mb-4 max-w-md text-3xl font-extrabold tracking-tight">{t('deep.title')}</h3>
-            <p className="mb-8 max-w-md text-sm leading-relaxed opacity-80">
-              {t('deep.desc')}
-            </p>
-            <button className="inline-flex items-center gap-2 rounded bg-[var(--surface-container-lowest)] px-6 py-3 text-xs font-bold uppercase tracking-widest text-[var(--primary)] transition-all hover:bg-white" type="button">
-              {t('deep.sync')}
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
-            </button>
-          </div>
-
-          <div className="flex flex-col rounded bg-[var(--surface-container-low)] p-8">
-            <h4 className="mb-6 font-bold text-[var(--ink)]">{t('stats.title')}</h4>
-            <div className="flex-grow space-y-6">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[var(--ink-soft)]">{t('stats.storage')}</span>
-                <span className="text-sm font-bold">1.20 GB / 5 GB</span>
-              </div>
-              <div className="h-1.5 w-full rounded-full bg-[var(--surface-container-highest)]">
-                <div className="h-full w-1/4 rounded-full bg-[var(--primary)]" />
-              </div>
-              <div className="mt-8 grid grid-cols-2 gap-4">
-                <div className="rounded border border-[var(--outline-variant)]/10 bg-[var(--surface-container-lowest)] p-4">
-                  <span className="block text-2xl font-extrabold text-[var(--primary)]">124</span>
-                  <span className="text-[10px] font-bold uppercase text-[var(--ink-soft)]">{t('stats.monographs')}</span>
-                </div>
-                <div className="rounded border border-[var(--outline-variant)]/10 bg-[var(--surface-container-lowest)] p-4">
-                  <span className="block text-2xl font-extrabold text-[var(--primary)]">3.4k</span>
-                  <span className="text-[10px] font-bold uppercase text-[var(--ink-soft)]">{t('stats.citations')}</span>
-                </div>
-              </div>
+          {isLoadingRecent ? (
+            <div className="col-span-full py-12 flex items-center justify-center">
+              <p className="text-sm text-[var(--muted)]">Loading recent documents...</p>
             </div>
+          ) : recentDocs.length > 0 ? (
+            recentDocs.map((doc) => {
+              const dateObj = new Date(doc.uploadedAt)
+              const dateStr = `${dateObj.getFullYear()}년 ${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일`
+              return (
+                <LibraryCard
+                  key={doc.id}
+                  title={doc.fileName}
+                  subtitle={
+                    formatTone(doc.status) === 'completed' 
+                      ? `${doc.pageCount} pages, ${doc.highlightCount} highlights extracted.`
+                      : doc.message
+                  }
+                  status={formatStatus(doc.status)}
+                  tone={formatTone(doc.status)}
+                  dateStr={dateStr}
+                  onDelete={() => handleDelete(doc.id)}
+                  onRetry={handleRetry}
+                  onDownload={() => handleDownload(doc.id, doc.fileName)}
+                  onClick={() => {
+                    // Navigate to view result
+                    window.location.hash = `/document/${doc.id}`
+                  }}
+                />
+              )
+            })
+          ) : (
+            <div className="col-span-full py-12 flex items-center justify-center">
+              <p className="text-sm text-[var(--muted)]">No recent documents found.</p>
+            </div>
+          )}
 
-            <button className="mt-8 flex items-center justify-center gap-2 rounded border border-[var(--primary-container)]/20 py-3 text-xs font-bold uppercase tracking-widest text-[var(--primary-container)] transition-all hover:bg-[var(--primary-container)] hover:text-white" type="button">
-              <span className="material-symbols-outlined text-sm">settings</span>
-              {t('stats.settings')}
-            </button>
-          </div>
         </div>
       </section>
     </section>
