@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface DocumentRepository : JpaRepository<DocumentEntity, Long> {
     fun findByPublicId(publicId: String): DocumentEntity?
     fun findTop6ByOrderByCreatedAtDesc(): List<DocumentEntity>
+    fun findAllByOrderByCreatedAtDesc(): List<DocumentEntity>
 }
 
 interface NoteJobRepository : JpaRepository<NoteJobEntity, Long> {

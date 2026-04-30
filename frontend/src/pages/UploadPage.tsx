@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getRecentDocuments, deleteDocument, downloadPdfExport, type DocumentResponse, type DocumentStatus } from '../api/documents'
 
@@ -8,6 +8,7 @@ interface UploadPageProps {
   error: string | null
   onFileSelect: (file: File | null) => void
   onSubmit: () => void
+  onOpenDocument: (documentId: string) => void
 }
 
 function LibraryCard({
@@ -64,9 +65,22 @@ function LibraryCard({
           </span>
           <div className={`absolute bottom-0 left-0 h-1 ${tone === 'processing' ? 'w-1/3' : 'w-full'} ${barClass}`} />
         </div>
-        <span className={`rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${badgeClass}`}>
-          {status}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${badgeClass}`}>
+            {status}
+          </span>
+          <button
+            aria-label={t('recent.delete')}
+            className="p-1.5 transition-colors hover:bg-[var(--surface-container-low)]"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete?.()
+            }}
+          >
+            <span className="material-symbols-outlined text-lg text-[var(--danger-strong)]/70">delete</span>
+          </button>
+        </div>
       </div>
 
       <h4 className="mb-2 text-lg font-bold leading-tight text-[var(--ink)]">{title}</h4>
@@ -78,10 +92,12 @@ function LibraryCard({
             <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
               {t('recent.neural')}
             </span>
-            <span className="text-xs font-bold text-[var(--primary-container)]">64%</span>
+            <span className="text-xs font-bold text-[var(--primary-container)]">
+              {t('recent.processingHint')}
+            </span>
           </div>
           <div className="h-1 bg-[var(--surface-container)]">
-            <div className="h-full w-[64%] bg-[var(--primary-container)]" />
+            <div className="h-full w-1/2 animate-pulse bg-[var(--primary-container)]" />
           </div>
         </div>
       ) : (
@@ -107,32 +123,17 @@ function LibraryCard({
           )}
 
           <div className="ml-auto flex gap-2">
-            <button 
-              className="p-2 transition-colors hover:bg-[var(--surface-container-low)]" 
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                if (tone === 'error') {
-                  onDelete?.()
-                } else {
-                  onDownload?.()
-                }
-              }}
-            >
-              <span className={`material-symbols-outlined text-xl ${tone === 'error' ? 'text-[var(--danger-strong)]/70' : 'text-[var(--ink-soft)]'}`}>
-                {tone === 'error' ? 'delete' : 'download'}
-              </span>
-            </button>
             {tone === 'completed' ? (
-              <button 
-                className="p-2 transition-colors hover:bg-[var(--surface-container-low)]" 
+              <button
+                className="p-2 transition-colors hover:bg-[var(--surface-container-low)]"
                 type="button"
+                aria-label={t('recent.download')}
                 onClick={(e) => {
                   e.stopPropagation()
-                  // share logic could go here
+                  onDownload?.()
                 }}
               >
-                <span className="material-symbols-outlined text-xl text-[var(--ink-soft)]">share</span>
+                <span className="material-symbols-outlined text-xl text-[var(--ink-soft)]">download</span>
               </button>
             ) : null}
           </div>
@@ -148,28 +149,44 @@ export function UploadPage({
   error: uploadError,
   onFileSelect,
   onSubmit,
+  onOpenDocument,
 }: UploadPageProps) {
   const { t } = useTranslation()
   const [recentDocs, setRecentDocs] = useState<DocumentResponse[]>([])
   const [isLoadingRecent, setIsLoadingRecent] = useState(true)
+  const [isArchiveExpanded, setIsArchiveExpanded] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const fetchRecent = () => {
-    getRecentDocuments()
+  const fetchRecent = useCallback((includeAll: boolean) => {
+    setIsLoadingRecent(true)
+    getRecentDocuments({ includeAll })
       .then(setRecentDocs)
       .catch((err) => console.error('Failed to fetch recent docs', err))
       .finally(() => setIsLoadingRecent(false))
-  }
+  }, [])
 
   useEffect(() => {
-    fetchRecent()
+    let ignore = false
+
+    getRecentDocuments({ includeAll: false })
+      .then((documents) => {
+        if (!ignore) setRecentDocs(documents)
+      })
+      .catch((err) => console.error('Failed to fetch recent docs', err))
+      .finally(() => {
+        if (!ignore) setIsLoadingRecent(false)
+      })
+
+    return () => {
+      ignore = true
+    }
   }, [])
 
   const handleDelete = async (id: string) => {
     if (!window.confirm(t('common.confirmDelete') || 'Are you sure you want to delete this document?')) return
     try {
       await deleteDocument(id)
-      fetchRecent()
+      fetchRecent(isArchiveExpanded)
     } catch (err) {
       console.error(err)
       alert('Failed to delete document')
@@ -295,9 +312,20 @@ export function UploadPage({
             <h2 className="text-3xl font-bold tracking-tight text-[var(--ink)]">{t('recent.title')}</h2>
             <p className="mt-1 text-[var(--ink-soft)]">{t('recent.subtitle')}</p>
           </div>
-          <button className="border-b border-[var(--primary-container)]/30 pb-0.5 text-sm font-semibold text-[var(--primary-container)] transition-all hover:border-[var(--primary-container)]" type="button">
-            {t('recent.viewAll')}
-          </button>
+          {!isArchiveExpanded ? (
+            <button
+              className="border-b border-[var(--primary-container)]/30 pb-0.5 text-sm font-semibold text-[var(--primary-container)] transition-all hover:border-[var(--primary-container)]"
+              type="button"
+              onClick={() => {
+                setIsArchiveExpanded(true)
+                fetchRecent(true)
+              }}
+            >
+              {t('recent.viewAll')}
+            </button>
+          ) : (
+            <span className="text-sm font-semibold text-[var(--ink-soft)]">{t('recent.viewingAll')}</span>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -324,10 +352,7 @@ export function UploadPage({
                   onDelete={() => handleDelete(doc.id)}
                   onRetry={handleRetry}
                   onDownload={() => handleDownload(doc.id, doc.fileName)}
-                  onClick={() => {
-                    // Navigate to view result
-                    window.location.hash = `/document/${doc.id}`
-                  }}
+                  onClick={() => onOpenDocument(doc.id)}
                 />
               )
             })

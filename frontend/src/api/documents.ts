@@ -50,6 +50,16 @@ const API_BASE_URL =
 
 async function readError(response: Response) {
   const text = await response.text()
+  if (text) {
+    try {
+      const parsed = JSON.parse(text) as { message?: unknown }
+      if (typeof parsed.message === 'string' && parsed.message.trim()) {
+        return parsed.message
+      }
+    } catch {
+      // Fall through to the plain response body.
+    }
+  }
   return text || `Request failed with status ${response.status}`
 }
 
@@ -108,10 +118,11 @@ export async function deleteDocument(documentId: string): Promise<void> {
   }
 }
 
-export async function getRecentDocuments(): Promise<DocumentResponse[]> {
+export async function getRecentDocuments(options: { includeAll?: boolean } = {}): Promise<DocumentResponse[]> {
+  const query = options.includeAll ? '?all=true' : ''
   let response: Response
   try {
-    response = await fetch(`${API_BASE_URL}/api/documents`)
+    response = await fetch(`${API_BASE_URL}/api/documents${query}`)
   } catch {
     throw new Error(networkErrorMessage())
   }

@@ -1,14 +1,21 @@
 package com.highlightnote.document
 
+import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine
+import org.apache.pdfbox.cos.COSName
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.common.PDRectangle
+import org.apache.pdfbox.pdmodel.graphics.color.PDColor
+import org.apache.pdfbox.pdmodel.graphics.image.PDImage
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationTextMarkup
 import org.apache.pdfbox.text.PDFTextStripper
 import org.apache.pdfbox.text.PDFTextStripperByArea
 import org.springframework.stereotype.Service
 import java.awt.geom.Rectangle2D
+import java.awt.geom.Point2D
 import java.nio.file.Path
+import kotlin.math.max
+import kotlin.math.min
 
 @Service
 class HighlightExtractionService {
@@ -17,7 +24,7 @@ class HighlightExtractionService {
         Loader.loadPDF(pdfPath.toFile()).use { document ->
             val fullText = PDFTextStripper().getText(document).replace(Regex("\\s+"), " ").trim()
 
-            val highlights = document.pages.flatMapIndexed { pageIndex, page ->
+            val annotationHighlights = document.pages.flatMapIndexed { pageIndex, page ->
                 page.annotations
                     .filterIsInstance<PDAnnotationTextMarkup>()
                     .filter { it.subtype.equals("Highlight", ignoreCase = true) }
@@ -35,12 +42,40 @@ class HighlightExtractionService {
                         )
                     }
             }
+            val highlights = annotationHighlights.ifEmpty {
+                if (fullText.isBlank()) {
+                    emptyList()
+                } else {
+                    document.pages.flatMapIndexed { pageIndex, page ->
+                        extractVisualHighlightText(page, pageIndex + 1)
+                    }
+                }
+            }
 
             return ExtractedDocument(
                 pageCount = document.numberOfPages,
                 textLayerPresent = fullText.isNotBlank(),
                 highlights = highlights,
             )
+        }
+    }
+
+    private fun extractVisualHighlightText(page: PDPage, pageNumber: Int): List<HighlightExcerpt> {
+        val visualBounds = VisualHighlightCollector(page).extract()
+            .distinctBy { "${it.x.toInt()}-${it.y.toInt()}-${it.width.toInt()}-${it.height.toInt()}" }
+            .sortedWith(compareBy<HighlightBounds> { it.y }.thenBy { it.x })
+
+        return visualBounds.mapNotNull { bounds ->
+            val text = extractHighlightedText(page, bounds)
+            if (text.isBlank()) {
+                null
+            } else {
+                HighlightExcerpt(
+                    page = pageNumber,
+                    text = text,
+                    bounds = bounds,
+                )
+            }
         }
     }
 
@@ -92,5 +127,93 @@ class HighlightExtractionService {
             width = rectangle.width.coerceAtLeast(1f),
             height = rectangle.height.coerceAtLeast(1f),
         )
+    }
+
+    private class VisualHighlightCollector(
+        private val page: PDPage,
+    ) : PDFGraphicsStreamEngine(page) {
+
+        private val highlights = mutableListOf<HighlightBounds>()
+        private var pendingRectangle: HighlightBounds? = null
+        private var currentPoint: Point2D = Point2D.Float()
+
+        fun extract(): List<HighlightBounds> {
+            processPage(page)
+            return highlights
+        }
+
+        override fun appendRectangle(p0: Point2D, p1: Point2D, p2: Point2D, p3: Point2D) {
+            val minX = min(min(p0.x, p1.x), min(p2.x, p3.x)).toFloat()
+            val maxX = max(max(p0.x, p1.x), max(p2.x, p3.x)).toFloat()
+            val minY = min(min(p0.y, p1.y), min(p2.y, p3.y)).toFloat()
+            val maxY = max(max(p0.y, p1.y), max(p2.y, p3.y)).toFloat()
+
+            pendingRectangle = HighlightBounds(
+                x = minX,
+                y = page.mediaBox.height - maxY,
+                width = (maxX - minX).coerceAtLeast(1f),
+                height = (maxY - minY).coerceAtLeast(1f),
+            )
+        }
+
+        override fun fillPath(windingRule: Int) {
+            val rectangle = pendingRectangle
+            if (
+                rectangle != null &&
+                rectangle.width >= 12f &&
+                rectangle.height >= 6f &&
+                isHighlightLike(graphicsState.nonStrokingColor)
+            ) {
+                highlights += rectangle
+            }
+            pendingRectangle = null
+        }
+
+        override fun fillAndStrokePath(windingRule: Int) {
+            fillPath(windingRule)
+        }
+
+        override fun strokePath() {
+            pendingRectangle = null
+        }
+
+        override fun endPath() {
+            pendingRectangle = null
+        }
+
+        override fun drawImage(pdImage: PDImage) = Unit
+
+        override fun clip(windingRule: Int) = Unit
+
+        override fun moveTo(x: Float, y: Float) {
+            currentPoint = Point2D.Float(x, y)
+        }
+
+        override fun lineTo(x: Float, y: Float) {
+            currentPoint = Point2D.Float(x, y)
+        }
+
+        override fun curveTo(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float, y3: Float) {
+            currentPoint = Point2D.Float(x3, y3)
+        }
+
+        override fun getCurrentPoint(): Point2D = currentPoint
+
+        override fun closePath() = Unit
+
+        override fun shadingFill(shadingName: COSName) = Unit
+
+        private fun isHighlightLike(color: PDColor?): Boolean {
+            val rgb = try {
+                color?.toRGB() ?: return false
+            } catch (_: Exception) {
+                return false
+            }
+            val red = (rgb shr 16) and 0xff
+            val green = (rgb shr 8) and 0xff
+            val blue = rgb and 0xff
+
+            return red >= 230 && green >= 220 && blue <= 230 && red - blue >= 20 && green - blue >= 10
+        }
     }
 }

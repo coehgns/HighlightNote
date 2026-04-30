@@ -1,4 +1,4 @@
-import { startTransition, useDeferredValue, useState } from 'react'
+import { startTransition, useCallback, useDeferredValue, useEffect, useState } from 'react'
 import {
   downloadPdfExport,
   getDocument,
@@ -14,6 +14,12 @@ import { AppShell } from './components/ui/AppShell'
 import { TopNavigation } from './components/ui/TopNavigation'
 
 type View = 'upload' | 'processing' | 'result'
+const notFoundPatterns = ['Document not found', 'Document job not found']
+
+function getDocumentIdFromHash() {
+  const match = window.location.hash.match(/^#\/document\/([^/]+)$/)
+  return match ? decodeURIComponent(match[1]) : null
+}
 
 function App() {
   const [view, setView] = useState<View>('upload')
@@ -24,6 +30,53 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
   const deferredDocument = useDeferredValue(document)
+
+  const loadDocumentResult = useCallback(async (documentId: string) => {
+    setError(null)
+    setIsSubmitting(false)
+    setIsDownloading(false)
+    setView('processing')
+
+    try {
+      const loadedDocument = await getDocument(documentId)
+      const loadedNote = loadedDocument.status === 'COMPLETED'
+        ? await getDocumentNote(loadedDocument.id)
+        : null
+
+      startTransition(() => {
+        setSelectedFile(null)
+        setDocument(loadedDocument)
+        setNote(loadedNote)
+        setView('result')
+      })
+    } catch (loadError) {
+      const errorMessage = loadError instanceof Error ? loadError.message : ''
+      const isStaleDocumentLink = notFoundPatterns.some((pattern) => errorMessage.includes(pattern))
+      if (isStaleDocumentLink && window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+      }
+
+      startTransition(() => {
+        setDocument(null)
+        setNote(null)
+        setError(isStaleDocumentLink ? null : errorMessage || '문서 상세를 불러오는 중 알 수 없는 오류가 발생했습니다.')
+        setView('upload')
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    const syncRoute = () => {
+      const documentId = getDocumentIdFromHash()
+      if (documentId) {
+        void loadDocumentResult(documentId)
+      }
+    }
+
+    syncRoute()
+    window.addEventListener('hashchange', syncRoute)
+    return () => window.removeEventListener('hashchange', syncRoute)
+  }, [loadDocumentResult])
 
   async function handleUpload() {
     if (!selectedFile) {
@@ -110,6 +163,9 @@ function App() {
   }
 
   function resetFlow() {
+    if (window.location.hash) {
+      window.history.pushState(null, '', window.location.pathname + window.location.search)
+    }
     setView('upload')
     setSelectedFile(null)
     setDocument(null)
@@ -117,6 +173,15 @@ function App() {
     setError(null)
     setIsSubmitting(false)
     setIsDownloading(false)
+  }
+
+  function openDocumentFromArchive(documentId: string) {
+    const hash = `/document/${encodeURIComponent(documentId)}`
+    if (window.location.hash === `#${hash}`) {
+      void loadDocumentResult(documentId)
+    } else {
+      window.location.hash = hash
+    }
   }
 
   return (
@@ -132,6 +197,7 @@ function App() {
               error={error}
               onFileSelect={setSelectedFile}
               onSubmit={handleUpload}
+              onOpenDocument={openDocumentFromArchive}
             />
           ) : null}
 

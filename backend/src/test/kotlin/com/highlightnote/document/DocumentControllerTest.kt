@@ -7,6 +7,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.multipart
@@ -122,6 +123,71 @@ class DocumentControllerTest(
                 status { isOk() }
                 content { contentType("application/pdf") }
                 header { string("Content-Disposition", org.hamcrest.Matchers.containsString(".pdf")) }
+            }
+    }
+
+    @Test
+    fun `uploading visually highlighted pdf returns completed note`() {
+        val file = MockMultipartFile(
+            "file",
+            "visual-highlighted.pdf",
+            "application/pdf",
+            PdfFixtureFactory.visuallyHighlightedPdfBytes(),
+        )
+
+        val uploadResponse = mockMvc.multipart("/api/documents") {
+            file(file)
+        }.andExpect {
+            status { isAccepted() }
+            jsonPath("$.status") { value("COMPLETED") }
+            jsonPath("$.highlightCount") { value(1) }
+        }.andReturn()
+
+        val documentId = """"id"\s*:\s*"([^"]+)"""".toRegex()
+            .find(uploadResponse.response.contentAsString)
+            ?.groupValues
+            ?.get(1)
+            ?: error("Document id not found in upload response")
+
+        mockMvc.get("/api/documents/$documentId/note")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.sections[0].sourceHighlights[0].text") {
+                    value("Visually highlighted concept")
+                }
+                jsonPath("$.sections[0].bullets.length()") { value(0) }
+            }
+    }
+
+    @Test
+    fun `deleting uploaded document removes it from the archive`() {
+        val file = MockMultipartFile(
+            "file",
+            "delete-me.pdf",
+            "application/pdf",
+            PdfFixtureFactory.highlightedPdfBytes(),
+        )
+
+        val uploadResponse = mockMvc.multipart("/api/documents") {
+            file(file)
+        }.andExpect {
+            status { isAccepted() }
+        }.andReturn()
+
+        val documentId = """"id"\s*:\s*"([^"]+)"""".toRegex()
+            .find(uploadResponse.response.contentAsString)
+            ?.groupValues
+            ?.get(1)
+            ?: error("Document id not found in upload response")
+
+        mockMvc.delete("/api/documents/$documentId")
+            .andExpect {
+                status { isNoContent() }
+            }
+
+        mockMvc.get("/api/documents/$documentId")
+            .andExpect {
+                status { isNotFound() }
             }
     }
 }

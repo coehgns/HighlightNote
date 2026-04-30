@@ -31,28 +31,20 @@ const resources = {
         title: '최근 처리된 문서',
         subtitle: '가장 최근의 문서 추출 결과를 확인하세요.',
         viewAll: '전체 아카이브 보기',
-        mock1: {
-          title: '디지털 공간의 현상학',
-          desc: '142개의 고유 인용 추출 및 12개 반복 주제의 의미론적 매핑 완료.'
-        },
-        mock2: {
-          title: '후기 바로크 미학',
-          desc: '84개의 고해상도 이미지 플레이트 및 관련 메타데이터 주석 분석 중.'
-        },
-        mock3: {
-          title: '초안: 도시 밀도 연구',
-          desc: '파일 스트림 복호화에 실패했습니다. 문서가 비밀번호로 보호되어 있지 않은지 확인하세요.'
-        },
+        viewingAll: '전체 아카이브 표시 중',
         status: {
           completed: '완료됨',
           processing: '처리 중',
           error: '오류',
         },
         neural: '신경망 매핑',
+        processingHint: '확인 중',
         processed: '처리 일시',
         date1: '2023년 10월 12일',
         date2: '5시간 전 추가됨',
         retry: '업로드 재시도',
+        download: 'PDF 학습 정리본 다운로드',
+        delete: '문서 삭제',
       },
       footer: {
         copyright: '© 2024 HighlightNote. 학술 문서 처리 서비스.',
@@ -145,28 +137,20 @@ const resources = {
         title: 'Recently Processed',
         subtitle: 'Review your most recent monograph extractions.',
         viewAll: 'View Complete Archive',
-        mock1: {
-          title: 'Phenomenology of Digital Spaces',
-          desc: 'Extraction of 142 unique citations and semantic mapping of 12 recurring themes.'
-        },
-        mock2: {
-          title: 'The Late Baroque Aesthetic',
-          desc: 'Analyzing 84 high-resolution image plates and associated metadata annotations.'
-        },
-        mock3: {
-          title: 'Draft: Urban Density Studies',
-          desc: 'Failed to decrypt file stream. Ensure the document is not password protected.'
-        },
+        viewingAll: 'Showing complete archive',
         status: {
           completed: 'Completed',
           processing: 'Processing',
           error: 'Error',
         },
         neural: 'Neural Mapping',
+        processingHint: 'Checking',
         processed: 'Processed',
         date1: '12 Oct 2023',
         date2: 'Added 5 hours ago',
         retry: 'Retry Upload',
+        download: 'Download PDF study notes',
+        delete: 'Delete document',
       },
       footer: {
         copyright: '© 2024 HighlightNote. An Academic Monograph Service.',

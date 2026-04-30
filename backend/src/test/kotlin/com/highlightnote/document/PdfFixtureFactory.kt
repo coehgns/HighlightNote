@@ -55,6 +55,39 @@ object PdfFixtureFactory {
         return output.toByteArray()
     }
 
+    fun visuallyHighlightedPdfBytes(): ByteArray {
+        val output = ByteArrayOutputStream()
+
+        PDDocument().use { document ->
+            val page = PDPage(PDRectangle.LETTER)
+            document.addPage(page)
+
+            val x = 72f
+            val y = 700f
+            val font = PDType1Font(Standard14Fonts.FontName.HELVETICA)
+            val text = "Visually highlighted concept"
+            val fontSize = 14f
+            val textWidth = font.getStringWidth(text) / 1000 * fontSize
+
+            PDPageContentStream(document, page).use { content ->
+                content.setNonStrokingColor(Color(255, 248, 190))
+                content.addRect(x - 3f, y - 4f, textWidth + 6f, 20f)
+                content.fill()
+
+                content.setNonStrokingColor(Color.BLACK)
+                content.beginText()
+                content.setFont(font, fontSize)
+                content.newLineAtOffset(x, y)
+                content.showText(text)
+                content.endText()
+            }
+
+            document.save(output)
+        }
+
+        return output.toByteArray()
+    }
+
     fun blankTextPdfBytes(): ByteArray {
         val output = ByteArrayOutputStream()
 

@@ -94,8 +94,12 @@ class DocumentService(
     }
 
     @Transactional
-    fun getRecentDocuments(): List<DocumentResponse> {
-        val documents = documentRepository.findTop6ByOrderByCreatedAtDesc()
+    fun getRecentDocuments(includeAll: Boolean = false): List<DocumentResponse> {
+        val documents = if (includeAll) {
+            documentRepository.findAllByOrderByCreatedAtDesc()
+        } else {
+            documentRepository.findTop6ByOrderByCreatedAtDesc()
+        }
         if (documents.isEmpty()) return emptyList()
         
         val docIds = documents.mapNotNull { it.id }
