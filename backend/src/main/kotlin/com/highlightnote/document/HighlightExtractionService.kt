@@ -161,7 +161,7 @@ class HighlightExtractionService {
             if (
                 rectangle != null &&
                 rectangle.width >= 12f &&
-                rectangle.height >= 6f &&
+                rectangle.height >= 3f &&
                 isHighlightLike(graphicsState.nonStrokingColor)
             ) {
                 highlights += rectangle
@@ -209,11 +209,20 @@ class HighlightExtractionService {
             } catch (_: Exception) {
                 return false
             }
-            val red = (rgb shr 16) and 0xff
-            val green = (rgb shr 8) and 0xff
-            val blue = rgb and 0xff
+            val red = ((rgb shr 16) and 0xff) / 255f
+            val green = ((rgb shr 8) and 0xff) / 255f
+            val blue = (rgb and 0xff) / 255f
 
-            return red >= 230 && green >= 220 && blue <= 230 && red - blue >= 20 && green - blue >= 10
+            val maxC = maxOf(red, green, blue)
+            val minC = minOf(red, green, blue)
+            val saturation = if (maxC == 0f) 0f else (maxC - minC) / maxC
+            val brightness = maxC
+
+            // Accept any color that is:
+            //  - bright enough (not dark shapes / text)
+            //  - saturated enough (not white / gray / black backgrounds)
+            // This covers yellow, green, blue, pink, red, orange, purple highlights.
+            return brightness >= 0.45f && saturation >= 0.08f
         }
     }
 }
